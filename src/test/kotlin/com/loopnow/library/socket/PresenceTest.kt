@@ -1,6 +1,7 @@
-package org.phoenixframework
+package com.loopnow.library.socket
 
 import com.google.common.truth.Truth.assertThat
+import com.loopnow.library.socket.utilities.getBindings
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.whenever
 import org.junit.jupiter.api.BeforeEach
@@ -9,7 +10,6 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
-import org.phoenixframework.utilities.getBindings
 
 class PresenceTest {
 
@@ -28,7 +28,7 @@ class PresenceTest {
   private val listByFirst: (Map.Entry<String, PresenceMap>) -> PresenceMeta =
       { it.value["metas"]!!.first() }
 
-  lateinit var channel: Channel
+  lateinit var channel: com.loopnow.library.socket.Channel
   lateinit var presence: Presence
 
   @BeforeEach
@@ -41,7 +41,7 @@ class PresenceTest {
     whenever(socket.rejoinAfterMs).thenReturn(Defaults.rejoinSteppedBackOff)
     whenever(socket.dispatchQueue).thenReturn(mock())
 
-    channel = Channel("topic", mapOf(), socket)
+    channel = com.loopnow.library.socket.Channel("topic", mapOf(), socket)
     channel.joinPush.ref = "1"
 
     presence = Presence(channel)
@@ -67,7 +67,7 @@ class PresenceTest {
 
     @Test
     internal fun `binds to channel with custom options`() {
-      val channel = Channel("topic", mapOf(), socket)
+      val channel = com.loopnow.library.socket.Channel("topic", mapOf(), socket)
       val customOptions = Presence.Options(mapOf(
           Presence.Events.STATE to "custom_state",
           Presence.Events.DIFF to "custom_diff"))

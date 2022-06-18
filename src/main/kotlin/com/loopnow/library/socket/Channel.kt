@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package org.phoenixframework
+package com.loopnow.library.socket
 
 import java.util.concurrent.ConcurrentLinkedQueue
 
@@ -37,9 +37,9 @@ data class Binding(
  * Represents a Channel bound to a given topic
  */
 class Channel(
-  val topic: String,
-  params: Payload,
-  internal val socket: Socket
+    val topic: String,
+    params: com.loopnow.library.socket.Payload,
+    internal val socket: com.loopnow.library.socket.Socket
 ) {
 
   //------------------------------------------------------------------------------
@@ -67,11 +67,11 @@ class Channel(
       /** True if the event is one of Phoenix's channel lifecycle events */
       fun isLifecycleEvent(event: String): Boolean {
         return when (event) {
-          JOIN.value,
-          LEAVE.value,
-          REPLY.value,
-          ERROR.value,
-          CLOSE.value -> true
+          com.loopnow.library.socket.Channel.Event.JOIN.value,
+          com.loopnow.library.socket.Channel.Event.LEAVE.value,
+          com.loopnow.library.socket.Channel.Event.REPLY.value,
+          com.loopnow.library.socket.Channel.Event.ERROR.value,
+          com.loopnow.library.socket.Channel.Event.CLOSE.value -> true
           else -> false
         }
       }
@@ -82,10 +82,10 @@ class Channel(
   // Channel Attributes
   //------------------------------------------------------------------------------
   /** Current state of the Channel */
-  internal var state: State
+  internal var state: com.loopnow.library.socket.Channel.State
 
   /** Collection of event bindings. */
-  internal val bindings: ConcurrentLinkedQueue<Binding>
+  internal val bindings: ConcurrentLinkedQueue<com.loopnow.library.socket.Binding>
 
   /** Tracks event binding ref counters */
   internal var bindingRef: Int
@@ -94,7 +94,7 @@ class Channel(
   internal var timeout: Long
 
   /** Params passed in through constructions and provided to the JoinPush */
-  var params: Payload = params
+  var params: com.loopnow.library.socket.Payload = params
     set(value) {
       joinPush.payload = value
       field = value
@@ -104,10 +104,10 @@ class Channel(
   internal var joinedOnce: Boolean
 
   /** Push to send then attempting to join */
-  internal var joinPush: Push
+  internal var joinPush: com.loopnow.library.socket.Push
 
   /** Buffer of Pushes that will be sent once the Channel's socket connects */
-  internal var pushBuffer: MutableList<Push>
+  internal var pushBuffer: MutableList<com.loopnow.library.socket.Push>
 
   /** Timer to attempt rejoins */
   internal var rejoinTimer: TimeoutTimer
@@ -145,11 +145,12 @@ class Channel(
 
 
     // Setup Push to be sent when joining
-    this.joinPush = Push(
+    this.joinPush = com.loopnow.library.socket.Push(
         channel = this,
         event = Event.JOIN.value,
         payload = params,
-        timeout = timeout)
+        timeout = timeout
+    )
 
     // Perform once the Channel has joined
     this.joinPush.receive("ok") {
@@ -166,7 +167,7 @@ class Channel(
 
     // Perform if Channel errors while attempting to join
     this.joinPush.receive("error") {
-      this.state = State.ERRORED
+      this.state = com.loopnow.library.socket.Channel.State.ERRORED
       if (this.socket.isConnected) { this.rejoinTimer.scheduleTimeout() }
     }
 
@@ -176,14 +177,15 @@ class Channel(
       this.socket.logItems("Channel: timeouts $topic, $joinRef after $timeout ms")
 
       // Send a Push to the server to leave the Channel
-      val leavePush = Push(
+      val leavePush = com.loopnow.library.socket.Push(
           channel = this,
-          event = Event.LEAVE.value,
-          timeout = this.timeout)
+          event = com.loopnow.library.socket.Channel.Event.LEAVE.value,
+          timeout = this.timeout
+      )
       leavePush.send()
 
       // Mark the Channel as in an error and attempt to rejoin if socket is connected
-      this.state = State.ERRORED
+      this.state = com.loopnow.library.socket.Channel.State.ERRORED
       this.joinPush.reset()
 
       if (this.socket.isConnected) { this.rejoinTimer.scheduleTimeout() }
@@ -218,12 +220,12 @@ class Channel(
       }
 
       // Mark the channel as errored and attempt to rejoin if socket is currently connected
-      this.state = State.ERRORED
+      this.state = com.loopnow.library.socket.Channel.State.ERRORED
       if (socket.isConnected) { this.rejoinTimer.scheduleTimeout() }
     }
 
     // Perform when the join reply is received
-    this.on(Event.REPLY) { message ->
+    this.on(com.loopnow.library.socket.Channel.Event.REPLY) { message ->
       this.trigger(replyEventName(message.ref), message.payload, message.ref, message.joinRef)
     }
   }
@@ -244,7 +246,7 @@ class Channel(
 
   /** @return: True if the Channel experienced an error */
   val isErrored: Boolean
-    get() = state == State.ERRORED
+    get() = state == com.loopnow.library.socket.Channel.State.ERRORED
 
   /** @return: True if the channel has joined */
   val isJoined: Boolean
@@ -252,16 +254,16 @@ class Channel(
 
   /** @return: True if the channel has requested to join */
   val isJoining: Boolean
-    get() = state == State.JOINING
+    get() = state == com.loopnow.library.socket.Channel.State.JOINING
 
   /** @return: True if the channel has requested to leave */
   val isLeaving: Boolean
-    get() = state == State.LEAVING
+    get() = state == com.loopnow.library.socket.Channel.State.LEAVING
 
   //------------------------------------------------------------------------------
   // Public
   //------------------------------------------------------------------------------
-  fun join(timeout: Long = this.timeout): Push {
+  fun join(timeout: Long = this.timeout): com.loopnow.library.socket.Push {
     // Ensure that `.join()` is called only once per Channel instance
     if (joinedOnce) {
       throw IllegalStateException(
@@ -276,18 +278,18 @@ class Channel(
   }
 
   fun onClose(callback: (Message) -> Unit): Int {
-    return this.on(Event.CLOSE, callback)
+    return this.on(com.loopnow.library.socket.Channel.Event.CLOSE, callback)
   }
 
   fun onError(callback: (Message) -> Unit): Int {
-    return this.on(Event.ERROR, callback)
+    return this.on(com.loopnow.library.socket.Channel.Event.ERROR, callback)
   }
 
   fun onMessage(callback: (Message) -> Message) {
     this.onMessage = callback
   }
 
-  fun on(event: Event, callback: (Message) -> Unit): Int {
+  fun on(event: com.loopnow.library.socket.Channel.Event, callback: (Message) -> Unit): Int {
     return this.on(event.value, callback)
   }
 
@@ -295,7 +297,7 @@ class Channel(
     val ref = bindingRef
     this.bindingRef = ref + 1
 
-    this.bindings.add(Binding(event, ref, callback))
+    this.bindings.add(com.loopnow.library.socket.Binding(event, ref, callback))
     return ref
   }
 
@@ -305,14 +307,14 @@ class Channel(
     }
   }
 
-  fun push(event: String, payload: Payload, timeout: Long = this.timeout): Push {
+  fun push(event: String, payload: com.loopnow.library.socket.Payload, timeout: Long = this.timeout): com.loopnow.library.socket.Push {
     if (!joinedOnce) {
       // If the Channel has not been joined, throw an exception
       throw RuntimeException(
           "Tried to push $event to $topic before joining. Use channel.join() before pushing events")
     }
 
-    val pushEvent = Push(this, event, payload, timeout)
+    val pushEvent = com.loopnow.library.socket.Push(this, event, payload, timeout)
 
     if (canPush) {
       pushEvent.send()
@@ -324,7 +326,7 @@ class Channel(
     return pushEvent
   }
 
-  fun leave(timeout: Long = this.timeout): Push {
+  fun leave(timeout: Long = this.timeout): com.loopnow.library.socket.Push {
     // Can push is dependent upon state == JOINED. Once we set it to LEAVING, then canPush
     // will return false, so instead store it _before_ starting the leave
     val canPush = this.canPush
@@ -336,19 +338,20 @@ class Channel(
     this.joinPush.cancelTimeout()
 
     // Now set the state to leaving
-    this.state = State.LEAVING
+    this.state = com.loopnow.library.socket.Channel.State.LEAVING
 
     // Perform the same behavior if the channel leaves successfully or not
     val onClose: ((Message) -> Unit) = {
       this.socket.logItems("Channel: leave $topic")
-      this.trigger(Event.CLOSE, mapOf("reason" to "leave"))
+      this.trigger(com.loopnow.library.socket.Channel.Event.CLOSE, mapOf("reason" to "leave"))
     }
 
     // Push event to send to the server
-    val leavePush = Push(
+    val leavePush = com.loopnow.library.socket.Push(
         channel = this,
-        event = Event.LEAVE.value,
-        timeout = timeout)
+        event = com.loopnow.library.socket.Channel.Event.LEAVE.value,
+        timeout = timeout
+    )
 
     leavePush
         .receive("ok", onClose)
@@ -368,7 +371,8 @@ class Channel(
   internal fun isMember(message: Message): Boolean {
     if (message.topic != this.topic) return false
 
-    val isLifecycleEvent = Event.isLifecycleEvent(message.event)
+    val isLifecycleEvent =
+        com.loopnow.library.socket.Channel.Event.Companion.isLifecycleEvent(message.event)
 
     // If the message is a lifecycle event and it is not a join for this channel, drop the outdated message
     if (message.joinRef != null && isLifecycleEvent && message.joinRef != this.joinRef) {
@@ -380,19 +384,19 @@ class Channel(
   }
 
   internal fun trigger(
-    event: Event,
-    payload: Payload = hashMapOf(),
-    ref: String = "",
-    joinRef: String? = null
+      event: com.loopnow.library.socket.Channel.Event,
+      payload: com.loopnow.library.socket.Payload = hashMapOf(),
+      ref: String = "",
+      joinRef: String? = null
   ) {
     this.trigger(event.value, payload, ref, joinRef)
   }
 
   internal fun trigger(
-    event: String,
-    payload: Payload = hashMapOf(),
-    ref: String = "",
-    joinRef: String? = null
+      event: String,
+      payload: com.loopnow.library.socket.Payload = hashMapOf(),
+      ref: String = "",
+      joinRef: String? = null
   ) {
     this.trigger(Message(ref, topic, event, payload, joinRef))
   }
@@ -417,7 +421,7 @@ class Channel(
   //------------------------------------------------------------------------------
   /** Sends the Channel's joinPush to the Server */
   private fun sendJoin(timeout: Long) {
-    this.state = State.JOINING
+    this.state = com.loopnow.library.socket.Channel.State.JOINING
     this.joinPush.resend(timeout)
   }
 

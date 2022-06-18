@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package org.phoenixframework
+package com.loopnow.library.socket
 
 import java.util.concurrent.TimeUnit
 
@@ -28,13 +28,13 @@ import java.util.concurrent.TimeUnit
  * A Push represents an attempt to send a payload through a Channel for a specific event.
  */
 class Push(
-  /** The channel the Push is being sent through */
-  val channel: Channel,
-  /** The event the Push is targeting */
+    /** The channel the Push is being sent through */
+  val channel: com.loopnow.library.socket.Channel,
+    /** The event the Push is targeting */
   val event: String,
-  /** The message to be sent */
+    /** The message to be sent */
   var payload: Payload = mapOf(),
-  /** Duration before the message is considered timed out and failed to send */
+    /** Duration before the message is considered timed out and failed to send */
   var timeout: Long = Defaults.TIMEOUT
 ) {
 

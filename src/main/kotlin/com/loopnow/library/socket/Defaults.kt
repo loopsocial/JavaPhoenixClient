@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package org.phoenixframework
+package com.loopnow.library.socket
 
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.Gson

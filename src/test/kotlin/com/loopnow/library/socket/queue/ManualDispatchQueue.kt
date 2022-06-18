@@ -1,7 +1,8 @@
-package org.phoenixframework.queue
+package com.loopnow.library.socket.queue
 
-import org.phoenixframework.DispatchQueue
-import org.phoenixframework.DispatchWorkItem
+import com.loopnow.library.socket.DispatchQueue
+import com.loopnow.library.socket.DispatchWorkItem
+
 import java.util.concurrent.TimeUnit
 
 class ManualDispatchQueue : DispatchQueue {

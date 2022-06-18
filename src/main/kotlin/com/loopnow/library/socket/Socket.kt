@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package org.phoenixframework
+package com.loopnow.library.socket
 
 import com.google.gson.Gson
 import okhttp3.HttpUrl
@@ -183,7 +183,7 @@ class Socket(
   internal val stateChangeCallbacks: StateChangeCallbacks = StateChangeCallbacks()
 
   /** Collection of unclosed channels created by the Socket */
-  internal var channels: List<Channel> = ArrayList()
+  internal var channels: List<com.loopnow.library.socket.Channel> = ArrayList()
 
   /**
    * Buffers messages that need to be sent once the socket has connected. It is an array of Pairs
@@ -341,14 +341,14 @@ class Socket(
   fun channel(
     topic: String,
     params: Payload = mapOf()
-  ): Channel {
-    val channel = Channel(topic, params, this)
+  ): com.loopnow.library.socket.Channel {
+    val channel = com.loopnow.library.socket.Channel(topic, params, this)
     this.channels = this.channels + channel
 
     return channel
   }
 
-  fun remove(channel: Channel) {
+  fun remove(channel: com.loopnow.library.socket.Channel) {
     this.off(channel.stateChangeRefs)
 
     // To avoid a ConcurrentModificationException, filter out the channels to be
@@ -442,7 +442,7 @@ class Socket(
     this.channels.forEach { channel ->
       // Only trigger a channel error if it is in an "opened" state
       if (!(channel.isErrored || channel.isLeaving || channel.isClosed)) {
-        channel.trigger(Channel.Event.ERROR.value)
+        channel.trigger(com.loopnow.library.socket.Channel.Event.ERROR.value)
       }
     }
   }
@@ -509,7 +509,7 @@ class Socket(
     this.pendingHeartbeatRef = this.makeRef()
     this.push(
       topic = "phoenix",
-      event = Channel.Event.HEARTBEAT.value,
+      event = com.loopnow.library.socket.Channel.Event.HEARTBEAT.value,
       payload = mapOf(),
       ref = pendingHeartbeatRef
     )
@@ -567,10 +567,12 @@ class Socket(
 
   internal fun onConnectionMessage(rawMessage: String) {
     this.logItems("Receive: $rawMessage")
-
+    Message.initPool()
     // Parse the message as JSON
-    val message = gson.fromJson(rawMessage, Message::class.java)
-
+    var copy = gson.fromJson(rawMessage, Message::class.java)
+    val message = Message.acquireMessage()
+    message.duplicate(copy)
+    copy = null
     // Clear heartbeat ref, preventing a heartbeat timeout disconnect
     if (message.ref == pendingHeartbeatRef) pendingHeartbeatRef = null
 

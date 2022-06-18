@@ -1,4 +1,4 @@
-package org.phoenixframework
+package com.loopnow.library.socket
 
 import com.google.common.truth.Truth.assertThat
 import com.nhaarman.mockitokotlin2.any

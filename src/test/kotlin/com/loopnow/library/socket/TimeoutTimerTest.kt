@@ -1,4 +1,4 @@
-package org.phoenixframework
+package com.loopnow.library.socket
 
 import com.google.common.truth.Truth
 import com.nhaarman.mockitokotlin2.any
@@ -11,9 +11,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
-import org.phoenixframework.DispatchQueue
-import org.phoenixframework.DispatchWorkItem
-import org.phoenixframework.TimeoutTimer
 import java.util.concurrent.TimeUnit
 
 class TimeoutTimerTest {

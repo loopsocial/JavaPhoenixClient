@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package org.phoenixframework
+package com.loopnow.library.socket
 
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.ScheduledThreadPoolExecutor

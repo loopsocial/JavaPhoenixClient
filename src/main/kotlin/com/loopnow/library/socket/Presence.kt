@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package org.phoenixframework
+package com.loopnow.library.socket
 
 //------------------------------------------------------------------------------
 // Type Aliases
@@ -49,7 +49,7 @@ typealias OnLeave = (key: String, current: PresenceMap, left: PresenceMap) -> Un
 /** Closure signature for OnSync callbacks */
 typealias OnSync = () -> Unit
 
-class Presence(channel: Channel, opts: Options = Options.defaults) {
+class Presence(channel: com.loopnow.library.socket.Channel, opts: Options = Options.defaults) {
 
   //------------------------------------------------------------------------------
   // Enums and Data classes
@@ -89,7 +89,7 @@ class Presence(channel: Channel, opts: Options = Options.defaults) {
   // Properties
   //------------------------------------------------------------------------------
   /** The channel the Presence belongs to */
-  internal val channel: Channel
+  internal val channel: com.loopnow.library.socket.Channel
 
   /** Caller to callback hooks */
   internal val caller: Caller

@@ -1,6 +1,8 @@
-package org.phoenixframework
+package com.loopnow.library.socket
 
 import com.google.common.truth.Truth.assertThat
+import com.loopnow.library.socket.queue.ManualDispatchQueue
+import com.loopnow.library.socket.utilities.getBindings
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.eq
 import com.nhaarman.mockitokotlin2.mock
@@ -18,8 +20,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mock
 import org.mockito.Mockito.verifyZeroInteractions
 import org.mockito.MockitoAnnotations
-import org.phoenixframework.queue.ManualDispatchQueue
-import org.phoenixframework.utilities.getBindings
+
 
 class ChannelTest {
 
@@ -35,7 +36,7 @@ class ChannelTest {
   private val kEmptyPayload: Payload = mapOf()
 
   lateinit var fakeClock: ManualDispatchQueue
-  lateinit var channel: Channel
+  lateinit var channel: com.loopnow.library.socket.Channel
 
   @BeforeEach
   internal fun setUp() {
@@ -49,7 +50,7 @@ class ChannelTest {
     whenever(socket.reconnectAfterMs).thenReturn(Defaults.reconnectSteppedBackOff)
     whenever(socket.rejoinAfterMs).thenReturn(Defaults.rejoinSteppedBackOff)
 
-    channel = Channel("topic", kDefaultPayload, socket)
+    channel = com.loopnow.library.socket.Channel("topic", kDefaultPayload, socket)
   }
 
   @AfterEach
@@ -62,13 +63,13 @@ class ChannelTest {
   inner class ChannelEvent {
     @Test
     internal fun `isLifecycleEvent returns true for lifecycle events`() {
-      assertThat(Channel.Event.isLifecycleEvent(Channel.Event.HEARTBEAT.value)).isFalse()
-      assertThat(Channel.Event.isLifecycleEvent(Channel.Event.JOIN.value)).isTrue()
-      assertThat(Channel.Event.isLifecycleEvent(Channel.Event.LEAVE.value)).isTrue()
-      assertThat(Channel.Event.isLifecycleEvent(Channel.Event.REPLY.value)).isTrue()
-      assertThat(Channel.Event.isLifecycleEvent(Channel.Event.ERROR.value)).isTrue()
-      assertThat(Channel.Event.isLifecycleEvent(Channel.Event.CLOSE.value)).isTrue()
-      assertThat(Channel.Event.isLifecycleEvent("random")).isFalse()
+      assertThat(com.loopnow.library.socket.Channel.Event.isLifecycleEvent(com.loopnow.library.socket.Channel.Event.HEARTBEAT.value)).isFalse()
+      assertThat(com.loopnow.library.socket.Channel.Event.isLifecycleEvent(com.loopnow.library.socket.Channel.Event.JOIN.value)).isTrue()
+      assertThat(com.loopnow.library.socket.Channel.Event.isLifecycleEvent(com.loopnow.library.socket.Channel.Event.LEAVE.value)).isTrue()
+      assertThat(com.loopnow.library.socket.Channel.Event.isLifecycleEvent(com.loopnow.library.socket.Channel.Event.REPLY.value)).isTrue()
+      assertThat(com.loopnow.library.socket.Channel.Event.isLifecycleEvent(com.loopnow.library.socket.Channel.Event.ERROR.value)).isTrue()
+      assertThat(com.loopnow.library.socket.Channel.Event.isLifecycleEvent(com.loopnow.library.socket.Channel.Event.CLOSE.value)).isTrue()
+      assertThat(com.loopnow.library.socket.Channel.Event.isLifecycleEvent("random")).isFalse()
     }
 
     /* End ChannelEvent */
@@ -79,7 +80,7 @@ class ChannelTest {
   inner class Constructor {
     @Test
     internal fun `sets defaults`() {
-      assertThat(channel.state).isEqualTo(Channel.State.CLOSED)
+      assertThat(channel.state).isEqualTo(com.loopnow.library.socket.Channel.State.CLOSED)
       assertThat(channel.topic).isEqualTo("topic")
       assertThat(channel.params["one"]).isEqualTo("two")
       assertThat(channel.socket).isEqualTo(socket)
@@ -130,7 +131,7 @@ class ChannelTest {
       val params = mapOf("value" to 1)
       val change = mapOf("value" to 2)
 
-      channel = Channel("topic", params, socket)
+      channel = com.loopnow.library.socket.Channel("topic", params, socket)
       val joinPush = channel.joinPush
 
       assertThat(joinPush.channel).isEqualTo(channel)
@@ -157,13 +158,13 @@ class ChannelTest {
     internal fun setUp() {
       socket = spy(Socket(url = "https://localhost:4000/socket", client = okHttpClient))
       socket.dispatchQueue = fakeClock
-      channel = Channel("topic", kDefaultPayload, socket)
+      channel = com.loopnow.library.socket.Channel("topic", kDefaultPayload, socket)
     }
 
     @Test
     internal fun `sets state to joining`() {
       channel.join()
-      assertThat(channel.state).isEqualTo(Channel.State.JOINING)
+      assertThat(channel.state).isEqualTo(com.loopnow.library.socket.Channel.State.JOINING)
     }
 
     @Test
@@ -252,7 +253,7 @@ class ChannelTest {
         fakeClock.tick(100)
 
         joinPush.trigger("ok", kEmptyPayload)
-        assertThat(channel.state).isEqualTo(Channel.State.JOINED)
+        assertThat(channel.state).isEqualTo(com.loopnow.library.socket.Channel.State.JOINED)
 
         fakeClock.tick(timeout)
         verify(socket, times(1)).push(any(), any(), any(), any(), any())
@@ -282,7 +283,7 @@ class ChannelTest {
         fakeClock.tick(10_000)
         joinPush.trigger("ok", kEmptyPayload)
         verify(socket, times(3)).push(any(), eq("phx_join"), any(), any(), any())
-        assertThat(channel.state).isEqualTo(Channel.State.JOINED)
+        assertThat(channel.state).isEqualTo(com.loopnow.library.socket.Channel.State.JOINED)
       }
 
       @Test
@@ -300,12 +301,12 @@ class ChannelTest {
         fakeClock.tick(1_000)
         socket.connect()
 
-        assertThat(channel.state).isEqualTo(Channel.State.ERRORED)
+        assertThat(channel.state).isEqualTo(com.loopnow.library.socket.Channel.State.ERRORED)
         this.receiveSocketOpen()
         joinPush.trigger("ok", kEmptyPayload)
 
         fakeClock.tick(1_000)
-        assertThat(channel.state).isEqualTo(Channel.State.JOINED)
+        assertThat(channel.state).isEqualTo(com.loopnow.library.socket.Channel.State.JOINED)
 
         verify(socket, times(3)).push(any(), any(), any(), any(), any())
       }
@@ -315,7 +316,7 @@ class ChannelTest {
         val joinPush = channel.joinPush
 
         channel.join()
-        assertThat(channel.state).isEqualTo(Channel.State.JOINING)
+        assertThat(channel.state).isEqualTo(com.loopnow.library.socket.Channel.State.JOINING)
 
         // connect socket after a delay
         fakeClock.tick(6_000)
@@ -327,7 +328,7 @@ class ChannelTest {
         joinPush.trigger("ok", kEmptyPayload)
 
         joinPush.trigger("ok", kEmptyPayload)
-        assertThat(channel.state).isEqualTo(Channel.State.JOINED)
+        assertThat(channel.state).isEqualTo(com.loopnow.library.socket.Channel.State.JOINED)
       }
 
 
@@ -363,7 +364,7 @@ class ChannelTest {
 
       whenever(socket.isConnected).thenReturn(true)
 
-      channel = Channel("topic", kDefaultPayload, socket)
+      channel = com.loopnow.library.socket.Channel("topic", kDefaultPayload, socket)
       joinPush = channel.joinPush
 
       channel.join()
@@ -389,10 +390,10 @@ class ChannelTest {
     inner class ReceivesOk {
       @Test
       internal fun `sets channel state to joined`() {
-        assertThat(channel.state).isNotEqualTo(Channel.State.JOINED)
+        assertThat(channel.state).isNotEqualTo(com.loopnow.library.socket.Channel.State.JOINED)
 
         receivesOk()
-        assertThat(channel.state).isEqualTo(Channel.State.JOINED)
+        assertThat(channel.state).isEqualTo(com.loopnow.library.socket.Channel.State.JOINED)
       }
 
       @Test
@@ -483,7 +484,7 @@ class ChannelTest {
         var timeoutReceived = false
         joinPush.receive("timeout") {
           timeoutReceived = true
-          assertThat(channel.state).isEqualTo(Channel.State.ERRORED)
+          assertThat(channel.state).isEqualTo(com.loopnow.library.socket.Channel.State.ERRORED)
         }
 
         receivesTimeout()
@@ -537,7 +538,7 @@ class ChannelTest {
     inner class ReceivesError {
       @Test
       internal fun `triggers receive('error') callback after error response`() {
-        assertThat(channel.state).isEqualTo(Channel.State.JOINING)
+        assertThat(channel.state).isEqualTo(com.loopnow.library.socket.Channel.State.JOINING)
         joinPush.receive("error", mockCallback)
 
         receivesError()
@@ -610,7 +611,7 @@ class ChannelTest {
       @Test
       internal fun `does not sets channel state to joined`() {
         receivesError()
-        assertThat(channel.state).isNotEqualTo(Channel.State.JOINED)
+        assertThat(channel.state).isNotEqualTo(com.loopnow.library.socket.Channel.State.JOINED)
       }
 
       @Test
@@ -643,7 +644,7 @@ class ChannelTest {
 
       whenever(socket.isConnected).thenReturn(true)
 
-      channel = Channel("topic", kDefaultPayload, socket)
+      channel = com.loopnow.library.socket.Channel("topic", kDefaultPayload, socket)
       joinPush = channel.joinPush
 
       channel.join()
@@ -653,10 +654,10 @@ class ChannelTest {
 
     @Test
     internal fun `sets channel state to errored`() {
-      assertThat(channel.state).isNotEqualTo(Channel.State.ERRORED)
+      assertThat(channel.state).isNotEqualTo(com.loopnow.library.socket.Channel.State.ERRORED)
 
-      channel.trigger(Channel.Event.ERROR)
-      assertThat(channel.state).isEqualTo(Channel.State.ERRORED)
+      channel.trigger(com.loopnow.library.socket.Channel.Event.ERROR)
+      assertThat(channel.state).isEqualTo(com.loopnow.library.socket.Channel.State.ERRORED)
     }
 
     @Test
@@ -667,12 +668,12 @@ class ChannelTest {
 
       verify(joinPush, times(0)).send()
 
-      channel.trigger(Channel.Event.ERROR)
+      channel.trigger(com.loopnow.library.socket.Channel.Event.ERROR)
 
       fakeClock.tick(1000)
       verify(joinPush, times(1)).send()
 
-      channel.trigger(Channel.Event.ERROR)
+      channel.trigger(com.loopnow.library.socket.Channel.Event.ERROR)
 
       fakeClock.tick(1000)
       verify(joinPush, times(1)).send()
@@ -680,13 +681,13 @@ class ChannelTest {
 
     @Test
     internal fun `removes the joinPush message from sendBuffer`() {
-      val channel = Channel("topic", kDefaultPayload, socket)
+      val channel = com.loopnow.library.socket.Channel("topic", kDefaultPayload, socket)
       val push = mock<Push>()
       whenever(push.ref).thenReturn("10")
       channel.joinPush = push
-      channel.state = Channel.State.JOINING
+      channel.state = com.loopnow.library.socket.Channel.State.JOINING
 
-      channel.trigger(Channel.Event.ERROR)
+      channel.trigger(com.loopnow.library.socket.Channel.Event.ERROR)
       verify(socket).removeFromSendBuffer("10")
       verify(push).reset()
     }
@@ -696,13 +697,13 @@ class ChannelTest {
       val mockTimer = mock<TimeoutTimer>()
       channel.rejoinTimer = mockTimer
 
-      channel.trigger(Channel.Event.ERROR)
+      channel.trigger(com.loopnow.library.socket.Channel.Event.ERROR)
       verify(mockTimer).scheduleTimeout()
     }
 
     @Test
     internal fun `does not rejoin if leaving channel`() {
-      channel.state = Channel.State.LEAVING
+      channel.state = com.loopnow.library.socket.Channel.State.LEAVING
 
       // Spy the joinPush
       joinPush = spy(channel.joinPush)
@@ -716,12 +717,12 @@ class ChannelTest {
       fakeClock.tick(2_000)
       verify(joinPush, never()).send()
 
-      assertThat(channel.state).isEqualTo(Channel.State.LEAVING)
+      assertThat(channel.state).isEqualTo(com.loopnow.library.socket.Channel.State.LEAVING)
     }
 
     @Test
     internal fun `does not rejoin if channel is closed`() {
-      channel.state = Channel.State.CLOSED
+      channel.state = com.loopnow.library.socket.Channel.State.CLOSED
 
       // Spy the joinPush
       joinPush = spy(channel.joinPush)
@@ -735,7 +736,7 @@ class ChannelTest {
       fakeClock.tick(2_000)
       verify(joinPush, never()).send()
 
-      assertThat(channel.state).isEqualTo(Channel.State.CLOSED)
+      assertThat(channel.state).isEqualTo(com.loopnow.library.socket.Channel.State.CLOSED)
     }
 
     @Test
@@ -743,10 +744,10 @@ class ChannelTest {
       channel.onError(mockCallback)
       joinPush.trigger("ok", kEmptyPayload)
 
-      assertThat(channel.state).isEqualTo(Channel.State.JOINED)
+      assertThat(channel.state).isEqualTo(com.loopnow.library.socket.Channel.State.JOINED)
       verifyZeroInteractions(mockCallback)
 
-      channel.trigger(Channel.Event.ERROR)
+      channel.trigger(com.loopnow.library.socket.Channel.Event.ERROR)
       verify(mockCallback, times(1)).invoke(any())
     }
 
@@ -767,7 +768,7 @@ class ChannelTest {
 
       whenever(socket.isConnected).thenReturn(true)
 
-      channel = Channel("topic", kDefaultPayload, socket)
+      channel = com.loopnow.library.socket.Channel("topic", kDefaultPayload, socket)
       joinPush = channel.joinPush
 
       channel.join()
@@ -776,10 +777,10 @@ class ChannelTest {
 
     @Test
     internal fun `sets state to closed`() {
-      assertThat(channel.state).isNotEqualTo(Channel.State.CLOSED)
+      assertThat(channel.state).isNotEqualTo(com.loopnow.library.socket.Channel.State.CLOSED)
 
-      channel.trigger(Channel.Event.CLOSE)
-      assertThat(channel.state).isEqualTo(Channel.State.CLOSED)
+      channel.trigger(com.loopnow.library.socket.Channel.Event.CLOSE)
+      assertThat(channel.state).isEqualTo(com.loopnow.library.socket.Channel.State.CLOSED)
     }
 
     @Test
@@ -788,7 +789,7 @@ class ChannelTest {
       joinPush = spy(channel.joinPush)
       channel.joinPush = joinPush
 
-      channel.trigger(Channel.Event.CLOSE)
+      channel.trigger(com.loopnow.library.socket.Channel.Event.CLOSE)
 
       fakeClock.tick(1_000)
       verify(joinPush, never()).send()
@@ -802,13 +803,13 @@ class ChannelTest {
       val mockTimer = mock<TimeoutTimer>()
       channel.rejoinTimer = mockTimer
 
-      channel.trigger(Channel.Event.CLOSE)
+      channel.trigger(com.loopnow.library.socket.Channel.Event.CLOSE)
       verify(mockTimer).reset()
     }
 
     @Test
     internal fun `removes channel from socket`() {
-      channel.trigger(Channel.Event.CLOSE)
+      channel.trigger(com.loopnow.library.socket.Channel.Event.CLOSE)
       verify(socket).remove(channel)
     }
 
@@ -817,7 +818,7 @@ class ChannelTest {
       channel.onClose(mockCallback)
       verifyZeroInteractions(mockCallback)
 
-      channel.trigger(Channel.Event.CLOSE)
+      channel.trigger(com.loopnow.library.socket.Channel.Event.CLOSE)
       verify(mockCallback, times(1)).invoke(any())
     }
 
@@ -829,7 +830,7 @@ class ChannelTest {
   inner class CanPush {
     @Test
     internal fun `returns true when socket connected and channel joined`() {
-      channel.state = Channel.State.JOINED
+      channel.state = com.loopnow.library.socket.Channel.State.JOINED
       whenever(socket.isConnected).thenReturn(true)
 
       assertThat(channel.canPush).isTrue()
@@ -837,15 +838,15 @@ class ChannelTest {
 
     @Test
     internal fun `otherwise returns false`() {
-      channel.state = Channel.State.JOINED
+      channel.state = com.loopnow.library.socket.Channel.State.JOINED
       whenever(socket.isConnected).thenReturn(false)
       assertThat(channel.canPush).isFalse()
 
-      channel.state = Channel.State.JOINING
+      channel.state = com.loopnow.library.socket.Channel.State.JOINING
       whenever(socket.isConnected).thenReturn(true)
       assertThat(channel.canPush).isFalse()
 
-      channel.state = Channel.State.JOINING
+      channel.state = com.loopnow.library.socket.Channel.State.JOINING
       whenever(socket.isConnected).thenReturn(false)
       assertThat(channel.canPush).isFalse()
     }
@@ -1060,29 +1061,29 @@ class ChannelTest {
     @Test
     internal fun `sets state to closed on 'ok' event`() {
       channel.leave().trigger("ok", kEmptyPayload)
-      assertThat(channel.state).isEqualTo(Channel.State.CLOSED)
+      assertThat(channel.state).isEqualTo(com.loopnow.library.socket.Channel.State.CLOSED)
     }
 
     @Test
     internal fun `sets state to leaving initially`() {
       channel.leave()
-      assertThat(channel.state).isEqualTo(Channel.State.LEAVING)
+      assertThat(channel.state).isEqualTo(com.loopnow.library.socket.Channel.State.LEAVING)
     }
 
     @Test
     internal fun `closes channel on timeout`() {
       channel.leave()
-      assertThat(channel.state).isEqualTo(Channel.State.LEAVING)
+      assertThat(channel.state).isEqualTo(com.loopnow.library.socket.Channel.State.LEAVING)
 
       fakeClock.tick(channel.timeout)
-      assertThat(channel.state).isEqualTo(Channel.State.CLOSED)
+      assertThat(channel.state).isEqualTo(com.loopnow.library.socket.Channel.State.CLOSED)
     }
 
     @Test
     internal fun `triggers immediately if cannot push`() {
       whenever(socket.isConnected).thenReturn(false)
       channel.leave()
-      assertThat(channel.state).isEqualTo(Channel.State.CLOSED)
+      assertThat(channel.state).isEqualTo(com.loopnow.library.socket.Channel.State.CLOSED)
     }
 
     /* End Leave */
@@ -1093,46 +1094,46 @@ class ChannelTest {
   inner class StateAccessors {
     @Test
     fun `isClosed returns true if state is CLOSED`() {
-      channel.state = Channel.State.JOINED
+      channel.state = com.loopnow.library.socket.Channel.State.JOINED
       assertThat(channel.isClosed).isFalse()
 
-      channel.state = Channel.State.CLOSED
+      channel.state = com.loopnow.library.socket.Channel.State.CLOSED
       assertThat(channel.isClosed).isTrue()
     }
 
     @Test
     fun `isErrored returns true if state is ERRORED`() {
-      channel.state = Channel.State.JOINED
+      channel.state = com.loopnow.library.socket.Channel.State.JOINED
       assertThat(channel.isErrored).isFalse()
 
-      channel.state = Channel.State.ERRORED
+      channel.state = com.loopnow.library.socket.Channel.State.ERRORED
       assertThat(channel.isErrored).isTrue()
     }
 
     @Test
     fun `isJoined returns true if state is JOINED`() {
-      channel.state = Channel.State.JOINING
+      channel.state = com.loopnow.library.socket.Channel.State.JOINING
       assertThat(channel.isJoined).isFalse()
 
-      channel.state = Channel.State.JOINED
+      channel.state = com.loopnow.library.socket.Channel.State.JOINED
       assertThat(channel.isJoined).isTrue()
     }
 
     @Test
     fun `isJoining returns true if state is JOINING`() {
-      channel.state = Channel.State.JOINED
+      channel.state = com.loopnow.library.socket.Channel.State.JOINED
       assertThat(channel.isJoining).isFalse()
 
-      channel.state = Channel.State.JOINING
+      channel.state = com.loopnow.library.socket.Channel.State.JOINING
       assertThat(channel.isJoining).isTrue()
     }
 
     @Test
     fun `isLeaving returns true if state is LEAVING`() {
-      channel.state = Channel.State.JOINED
+      channel.state = com.loopnow.library.socket.Channel.State.JOINED
       assertThat(channel.isLeaving).isFalse()
 
-      channel.state = Channel.State.LEAVING
+      channel.state = com.loopnow.library.socket.Channel.State.LEAVING
       assertThat(channel.isLeaving).isTrue()
     }
     /* End StateAccessors */
@@ -1151,7 +1152,7 @@ class ChannelTest {
     @Test
     fun `drops outdated messages`() {
       channel.joinPush.ref = "9"
-      val message = Message(topic = "topic", event = Channel.Event.LEAVE.value, joinRef = "7")
+      val message = Message(topic = "topic", event = com.loopnow.library.socket.Channel.Event.LEAVE.value, joinRef = "7")
       assertThat(channel.isMember(message)).isFalse()
     }
 

@@ -1,5 +1,6 @@
 buildscript {
   repositories {
+    google()
     jcenter()
     mavenCentral()
   }
@@ -30,6 +31,7 @@ version '0.5.0'
 sourceCompatibility = 1.8
 
 repositories {
+  google()
   jcenter()
   mavenCentral()
 }
@@ -50,7 +52,6 @@ dependencies {
   compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
   compile "com.google.code.gson:gson:2.8.5"
   compile "com.squareup.okhttp3:okhttp:3.12.2"
-
   testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
 

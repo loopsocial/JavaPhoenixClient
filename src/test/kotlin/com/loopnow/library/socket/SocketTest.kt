@@ -1,4 +1,4 @@
-package org.phoenixframework
+package com.loopnow.library.socket
 
 import com.google.common.truth.Truth.assertThat
 import com.nhaarman.mockitokotlin2.any
@@ -832,7 +832,7 @@ class SocketTest {
       socket.channels = socket.channels.plus(spy)
 
       spy.join()
-      assertThat(spy.state).isEqualTo(Channel.State.JOINING)
+      assertThat(spy.state).isEqualTo(com.loopnow.library.socket.Channel.State.JOINING)
 
       socket.onConnectionClosed(1001)
       verify(spy).trigger("phx_error")
@@ -849,7 +849,7 @@ class SocketTest {
 
       spy.join().trigger("ok", emptyMap())
 
-      assertThat(channel.state).isEqualTo(Channel.State.JOINED)
+      assertThat(channel.state).isEqualTo(com.loopnow.library.socket.Channel.State.JOINED)
 
       socket.onConnectionClosed(1001)
       verify(spy).trigger("phx_error")
@@ -867,7 +867,7 @@ class SocketTest {
       spy.join().trigger("ok", emptyMap())
       spy.leave()
 
-      assertThat(channel.state).isEqualTo(Channel.State.CLOSED)
+      assertThat(channel.state).isEqualTo(com.loopnow.library.socket.Channel.State.CLOSED)
 
       socket.onConnectionClosed(1001)
       verify(spy, never()).trigger("phx_error")
@@ -904,7 +904,7 @@ class SocketTest {
       socket.channels = socket.channels.plus(spy)
 
       spy.join()
-      assertThat(spy.state).isEqualTo(Channel.State.JOINING)
+      assertThat(spy.state).isEqualTo(com.loopnow.library.socket.Channel.State.JOINING)
 
       socket.onConnectionError(Throwable(), null)
       verify(spy).trigger("phx_error")
@@ -921,7 +921,7 @@ class SocketTest {
 
       spy.join().trigger("ok", emptyMap())
 
-      assertThat(channel.state).isEqualTo(Channel.State.JOINED)
+      assertThat(channel.state).isEqualTo(com.loopnow.library.socket.Channel.State.JOINED)
 
       socket.onConnectionError(Throwable(), null)
       verify(spy).trigger("phx_error")
@@ -939,7 +939,7 @@ class SocketTest {
       spy.join().trigger("ok", emptyMap())
       spy.leave()
 
-      assertThat(channel.state).isEqualTo(Channel.State.CLOSED)
+      assertThat(channel.state).isEqualTo(com.loopnow.library.socket.Channel.State.CLOSED)
 
       socket.onConnectionError(Throwable(), null)
       verify(spy, never()).trigger("phx_error")
@@ -953,9 +953,9 @@ class SocketTest {
   inner class OnConnectionMessage {
     @Test
     internal fun `parses raw messages and triggers channel event`() {
-      val targetChannel = mock<Channel>()
+      val targetChannel = mock<com.loopnow.library.socket.Channel>()
       whenever(targetChannel.isMember(any())).thenReturn(true)
-      val otherChannel = mock<Channel>()
+      val otherChannel = mock<com.loopnow.library.socket.Channel>()
       whenever(otherChannel.isMember(any())).thenReturn(false)
 
       socket.channels = socket.channels.plus(targetChannel)

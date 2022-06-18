@@ -1,6 +1,6 @@
-package org.phoenixframework.queue
+package com.loopnow.library.socket.queue
 
-import org.phoenixframework.DispatchWorkItem
+import com.loopnow.library.socket.DispatchWorkItem
 
 class ManualDispatchWorkItem(
   private val runnable: () -> Unit,

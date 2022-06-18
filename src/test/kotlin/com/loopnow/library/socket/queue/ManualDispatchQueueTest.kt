@@ -1,4 +1,4 @@
-package org.phoenixframework.queue
+package com.loopnow.library.socket.queue
 
 import com.google.common.truth.Truth.assertThat
 import org.junit.jupiter.api.AfterEach
