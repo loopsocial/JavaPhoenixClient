@@ -1,7 +1,5 @@
 package com.loopnow.library.socket;
 
-
-
 import org.jetbrains.annotations.NotNull;
 
 public class MessagePool implements IMessagePool {
