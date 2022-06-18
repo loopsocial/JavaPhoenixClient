@@ -14,6 +14,10 @@
 
 apply plugin: 'maven-publish'
 
+beforeEvaluate {
+    assemble
+    build
+}
 afterEvaluate {
     publishing {
         repositories {
@@ -22,33 +26,6 @@ afterEvaluate {
             }
         }
         publications {
-//            release(MavenPublication) {
-//                from components.release
-//                artifact androidSourcesJar
-//                groupId = 'com.github.loopsocial'
-//                artifactId = 'firework_socket'
-//                version "0.5.0"
-//                pom {
-//                    name = 'firework_socket'
-//                    description = 'The firework library (all modules).'
-//                    licenses {
-//                        license {
-//                            name = 'The Apache Software License, Version 2.0'
-//                            url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-//                            distribution = 'repo'
-//                        }
-//                    }
-//                    developers {
-//                        developer {
-//                            name = 'The Android Open Source Project'
-//                        }
-//                    }
-//                    scm {
-//                        connection = 'https://github.com/loopsocial/JavaPhoenixClient.git'
-//                        url = 'https://github.com/loopsocial/JavaPhoenixClient'
-//                    }
-//                }
-//            }
         }
     }
 }
