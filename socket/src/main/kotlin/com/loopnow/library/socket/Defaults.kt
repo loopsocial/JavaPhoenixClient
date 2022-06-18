@@ -26,6 +26,7 @@ import com.google.gson.FieldNamingPolicy
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import java.net.URL
 
 object Defaults {
@@ -77,7 +78,7 @@ object Defaults {
 
     // If there are query params, append them now
     var httpUrl =
-      HttpUrl.parse(mutableUrl) ?: throw IllegalArgumentException("invalid url: $endpoint")
+      mutableUrl.toHttpUrlOrNull() ?: throw IllegalArgumentException("invalid url: $endpoint")
     paramsClosure.invoke()?.let {
       val httpBuilder = httpUrl.newBuilder()
       it.forEach { (key, value) ->
@@ -88,6 +89,6 @@ object Defaults {
     }
 
     // Store the URL that will be used to establish a connection
-    return httpUrl.url()
+    return httpUrl.toUrl()
   }
 }

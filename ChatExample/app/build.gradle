@@ -37,7 +37,7 @@ dependencies {
         and comment out the mavenCentral() dependency
      */
 //    implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.github.dsrees:JavaPhoenixClient:0.3.4'
+    implementation 'com.github.loopsocial:JavaPhoenixClient:0.5.2'
 
 
     implementation "com.google.code.gson:gson:2.8.5"

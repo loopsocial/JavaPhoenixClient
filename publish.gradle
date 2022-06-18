@@ -16,9 +16,15 @@ apply plugin: 'maven-publish'
 
 afterEvaluate {
     publishing {
+        repositories {
+            maven {
+                name = "GitHubPackages"
+                url = uri("https://maven.pkg.github.com/loopsocial/JavaPhoenixClient")
 
+            }
+        }
         publications {
-            maven(MavenPublication) {
+            release(MavenPublication) {
 
                 groupId = 'com.github.loopsocial'
                 artifactId = 'firework_socket'
@@ -43,6 +49,7 @@ afterEvaluate {
                         url = 'https://github.com/loopsocial/JavaPhoenixClient'
                     }
                 }
+                from components.release
             }
         }
     }

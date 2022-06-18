@@ -8,8 +8,8 @@ import android.widget.Button
 import android.widget.EditText
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.android.synthetic.main.activity_main.*
-import org.phoenixframework.Channel
-import org.phoenixframework.Socket
+
+import java.net.Socket
 
 class MainActivity : AppCompatActivity() {
 

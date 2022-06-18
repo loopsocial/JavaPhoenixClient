@@ -1,0 +1,50 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+    id 'kotlin-kapt'
+    id 'maven-publish'
+}
+
+android {
+    compileSdk 31
+
+    defaultConfig {
+        minSdk 23
+        targetSdk 31
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation "com.google.code.gson:gson:2.9.0"
+    implementation "com.squareup.okhttp3:okhttp:4.9.3"
+//    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'
+//    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
+//
+//    testCompile group: 'com.google.truth', name: 'truth', version: '0.44'
+//    testCompile group: 'org.mockito', name: 'mockito-core', version: '2.27.0'
+//    testCompile group: 'com.nhaarman.mockitokotlin2', name: 'mockito-kotlin', version: '2.1.0'
+}
+
+
+apply from: "../publish.gradle"
